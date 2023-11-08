@@ -2,39 +2,36 @@ import { useEffect, useState } from "react";
 import { database, signOut } from "./firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import { imagemDb } from "./firebaseConfig";
+import "./home.css";
 import { listAll, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 
 function HomeScreen() {
   const user = database.currentUser;
+  const uid = user.uid;
   const displayName = user ? user.displayName : null;
   const history = useNavigate();
-
   const [img, setImg] = useState(null);
-  const [imgUrl, setImgUrl] = useState([]);
+  const [imgUrl, setImgUrl] = useState(null);
 
   const LogoutClick = () => {
-    signOut(database).then((val) => {
-      console.log(val, "val");
+    signOut(database).then(() => {
       history("/");
     });
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (img !== null) {
-      const imgRef = ref(imagemDb, `files/${v4()}`);
-      uploadBytes(imgRef, img).then((value) => {
-        console.log(value);
-        getDownloadURL(value.ref).then((url) => {
-          setImgUrl((data) => [...data, url]);
-        });
-      });
+      const imgRef = ref(imagemDb, `files/${uid}/${v4()}`);
+      await uploadBytes(imgRef, img);
+      const url = await getDownloadURL(imgRef);
+      setImgUrl(url);
     }
   };
 
   useEffect(() => {
     const fetchImages = async () => {
-      const imgs = await listAll(ref(imagemDb, "files"));
+      const imgs = await listAll(ref(imagemDb, `files/${uid}`));
       const urls = await Promise.all(
         imgs.items.map(async (val) => {
           const url = await getDownloadURL(val);
@@ -45,20 +42,35 @@ function HomeScreen() {
     };
 
     fetchImages();
-  }, []);
+  }, [uid]);
 
   return (
-    <div>
-      <h1>Bem-vindo, {displayName}!</h1>
-      <input type="file" onChange={(e) => setImg(e.target.files[0])} />
-      <button onClick={handleClick}> upload</button>
-      {imgUrl.map((dataVal) => (
-        <div key={dataVal}>
-          <img src={dataVal} height="200px" width="200px" alt="uploaded" />
-          <br />
-        </div>
-      ))}
-      <button onClick={LogoutClick}>Logout</button>
+    <div className="gradient">
+      <button className="button-logout" onClick={LogoutClick}>
+        Logout
+      </button>
+      <div className="container-home">
+        <label htmlFor="upload-input" className="upload-label">
+          <div className="upload-container">
+            <input
+              type="file"
+              id="upload-input"
+              onChange={(e) => {
+                setImg(e.target.files[0]);
+                handleClick();
+              }}
+              className="upload-button"
+            />
+            {imgUrl && (
+              <div className="profile">
+                <img className="profile-img" src={imgUrl} alt="uploaded" />
+                <br />
+              </div>
+            )}
+          </div>
+        </label>
+        <h1>Bem-vindo, {displayName}!</h1>
+      </div>
     </div>
   );
 }
