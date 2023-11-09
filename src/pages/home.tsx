@@ -8,11 +8,11 @@ import { v4 } from "uuid";
 
 function HomeScreen() {
   const user = database.currentUser;
-  const uid = user.uid;
+  const uid = user ? user.uid : null;
   const displayName = user ? user.displayName : null;
   const history = useNavigate();
-  const [img, setImg] = useState(null);
-  const [imgUrl, setImgUrl] = useState(null);
+  const [img, setImg] = useState<File | null>(null);
+  const [imgUrl, setImgUrl] = useState("");
 
   const LogoutClick = () => {
     signOut(database).then(() => {
@@ -55,12 +55,10 @@ function HomeScreen() {
             <input
               type="file"
               id="upload-input"
-              onChange={(e) => {
-                setImg(e.target.files[0]);
-                handleClick();
-              }}
+              onChange={(e) => setImg(e.target.files![0])}
               className="upload-button"
             />
+
             {imgUrl && (
               <div className="profile">
                 <img className="profile-img" src={imgUrl} alt="uploaded" />
@@ -69,6 +67,7 @@ function HomeScreen() {
             )}
           </div>
         </label>
+        {img && <button onClick={handleClick}>Enviar Imagem</button>}
         <h1>Bem-vindo, {displayName}!</h1>
       </div>
     </div>

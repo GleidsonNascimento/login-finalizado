@@ -1,9 +1,10 @@
-import  { useState } from "react";
-import { database } from "./firebaseConfig";
-import "./naosei.css"
+import { useState } from "react";
+import { database, auth } from "./firebaseConfig";
+import "./naosei.css";
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword, updateProfile
+  signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
@@ -53,46 +54,50 @@ function RegisterAndLogin() {
     }
   };
 
-  const handleReset = ()=>{
+  const handleReset = () => {
     history("/reset");
-  }
+  };
 
   return (
     <div className="App">
-     <div className="container-login">
-     <div className="row">
-     <div
-  className={`Color ${login === true ? "activeColor" : "pointer"}`}
-  onClick={() => setLogin(true)}
->
-  <h4>Login</h4>
-</div>
-     <div
-  className={`Color ${login === false ? "activeColor" : "pointer"}`}
-  onClick={() => setLogin(false)}
->
-  <h4>Inscreva-se</h4>
-</div>
-      </div>
-     <div className="container-form">
-     <h1>{login ? "Login" : "Cadastra-se"}</h1>
-      <form onSubmit={(e) => handleSubmit(e, login ? "signin" : "signup")}>
-        <input name="email" placeholder="Email" />
-        <br />
-        <input name="password" type="text" placeholder="Password" />
-        <br />
-        {login === false && ( 
-          <>
-            <input name="name" placeholder="Nome" />
+      <div className="container-login">
+        <div className="row">
+          <div
+            className={`Color ${login === true ? "activeColor" : "pointer"}`}
+            onClick={() => setLogin(true)}
+          >
+            <h4>Login</h4>
+          </div>
+          <div
+            className={`Color ${login === false ? "activeColor" : "pointer"}`}
+            onClick={() => setLogin(false)}
+          >
+            <h4>Inscreva-se</h4>
+          </div>
+        </div>
+        <div className="container-form">
+          <h1>{login ? "Login" : "Cadastra-se"}</h1>
+          <form onSubmit={(e) => handleSubmit(e, login ? "signin" : "signup")}>
+            <input name="email" placeholder="Email" />
             <br />
-          </>
-        )}
-        <p className="password" onClick={handleReset}>Esqueceu a senha?</p>
-        <br />
-        <button className="button-login">{login ? "Login" : "Cadastrar"}</button>
-      </form>
-     </div>
-     </div>
+            <input name="password" type="text" placeholder="Password" />
+            <br />
+            {login === false && (
+              <>
+                <input name="name" placeholder="Nome" />
+                <br />
+              </>
+            )}
+            <p className="password" onClick={handleReset}>
+              Esqueceu a senha?
+            </p>
+            <br />
+            <button className="button-login">
+              {login ? "Login" : "Cadastrar"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
