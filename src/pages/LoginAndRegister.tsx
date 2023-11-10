@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { database, auth } from "./firebaseConfig";
+import { database } from "./firebaseConfig";
 import "./naosei.css";
 import {
   createUserWithEmailAndPassword,
@@ -13,50 +13,68 @@ function RegisterAndLogin() {
 
   const history = useNavigate();
 
-  const handleSubmit = (e, type) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    type: string
+  ) => {
     e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password.value;
-    const name = e.target.name.value;
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const name = formData.get("name") as string | undefined;
 
-    if (type === "signup") {
-      createUserWithEmailAndPassword(database, email, password)
-        .then((data) => {
-          const user = data.user;
-          return updateProfile(user, {
-            displayName: name,
-          });
-        })
-        .then(() => {
-          const user = auth.currentUser;
-          console.log("Nome do usuário salvo:", user.displayName);
-          history("/home");
-        })
-        .catch((err) => {
-          if (err.code === "auth/email-already-in-use") {
+    try {
+      if (type === "signup") {
+        const userCredential = await createUserWithEmailAndPassword(
+          database,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        await updateProfile(user, { displayName: name });
+        console.log("Nome do usuário salvo:", user.displayName);
+        history("/home");
+      } else {
+        const userCredential = await signInWithEmailAndPassword(
+          database,
+          email,
+          password
+        );
+        console.log(userCredential, "authData");
+        history("/home");
+      }
+    } catch (err: any) {
+      if (err?.code) {
+        const errCode = err.code;
+        switch (errCode) {
+          case "auth/email-already-in-use":
             alert("O endereço de e-mail já está em uso.");
-          } else if (err.code === "auth/invalid-email") {
+            break;
+          case "auth/invalid-email":
             alert("O endereço de e-mail é inválido.");
-          } else {
-            alert("cadastro feito com sucesso");
-          }
-          setLogin(true);
-        });
-    } else {
-      signInWithEmailAndPassword(database, email, password)
-        .then((data) => {
-          console.log(data, "authData");
-          history("/home");
-        })
-        .catch((err) => {
-          alert(err.code);
-        });
+            break;
+          default:
+            alert(`Erro durante o cadastro: ${errCode}`);
+        }
+      } else {
+        alert("Houve um erro durante o cadastro.");
+      }
+
+      setLogin(true);
     }
   };
 
   const handleReset = () => {
     history("/reset");
   };
+
+  const user = database.currentUser;
+
+  if (user) {
+    console.log("O usuário está autenticado:", user.displayName);
+  } else {
+    console.log("O usuário não está autenticado.");
+  }
 
   return (
     <div className="App">

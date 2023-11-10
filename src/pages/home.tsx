@@ -12,7 +12,7 @@ function HomeScreen() {
   const displayName = user ? user.displayName : null;
   const history = useNavigate();
   const [img, setImg] = useState<File | null>(null);
-  const [imgUrl, setImgUrl] = useState("");
+  const [imgUrl, setImgUrl] = useState<string[]>([]);
 
   const LogoutClick = () => {
     signOut(database).then(() => {
@@ -25,7 +25,7 @@ function HomeScreen() {
       const imgRef = ref(imagemDb, `files/${uid}/${v4()}`);
       await uploadBytes(imgRef, img);
       const url = await getDownloadURL(imgRef);
-      setImgUrl(url);
+      setImgUrl([...imgUrl, url]); // Adicionando a nova URL ao array existente
     }
   };
 
@@ -59,17 +59,25 @@ function HomeScreen() {
               className="upload-button"
             />
 
-            {imgUrl && (
+            {imgUrl.length > 0 && (
               <div className="profile">
-                <img className="profile-img" src={imgUrl} alt="uploaded" />
+                <img
+                  className="profile-img"
+                  src={imgUrl[imgUrl.length - 1]}
+                  alt="uploaded"
+                />
                 <br />
               </div>
             )}
           </div>
         </label>
-        {img && <button onClick={handleClick}>Enviar Imagem</button>}
         <h1>Bem-vindo, {displayName}!</h1>
       </div>
+      {img && (
+        <button className="button-img" onClick={handleClick}>
+          Enviar Imagem
+        </button>
+      )}
     </div>
   );
 }
